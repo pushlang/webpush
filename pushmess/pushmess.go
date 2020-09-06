@@ -2,7 +2,7 @@ package pushmess
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -38,16 +38,23 @@ var User *string
 // DB СУБД Postgres
 var DB *sql.DB
 
-// GetCount возвращает JSON-структуру с количеством отправленных сообщений с определенного временного периода
+// GetCount возвращает JSON-структуру с количеством отправленных сообщений с заданного времени
+// http://127.0.0.1:8000/getcount/2020-10-24T18:50:23.541Z
 func GetCount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 
-	from, _ := time.Parse(time.RFC3339, params["from"])
+	from, err := time.Parse(time.RFC3339, params["from"])
+	if err != nil {
+		log.Println("Предупреждение: Парсинг даты не выполнен, код ошибки - ", err)
+		return
+	}
+	log.Println("Получен запрос GetCount:", from)
 
 	rows, err := DB.Query("SELECT * FROM messages")
 	if err != nil {
-		panic(err)
+		log.Println("Предупреждение: Запрос к БД не выполнен, код ошибки - ", err)
+		return
 	}
 	defer rows.Close()
 
@@ -56,13 +63,14 @@ func GetCount(w http.ResponseWriter, r *http.Request) {
 		message := Message{}
 		t := ""
 		err := rows.Scan(&message.ID, &message.Token, &message.User, &message.Text, &message.Status, &t)
-		message.Sent, _ = time.Parse(time.UnixDate, t)
-
-		fmt.Println("Получен запрос:", message.Sent)
-
 		if err != nil {
-			fmt.Println(err)
-			continue
+			log.Println("Предупреждение: Некорректно сформирован запрос к БД, код ошибки - ", err)
+			return
+		}
+		message.Sent, err = time.Parse(time.UnixDate, t)
+		if err != nil {
+			log.Println("Предупреждение: Некорректный формат даты, код ошибки - ", err)
+			return
 		}
 
 		if message.Sent.Before(from) {
@@ -75,7 +83,10 @@ func GetCount(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	json.NewEncoder(w).Encode(CountCodes{Sent: sent, Failed: failed})
+	err = json.NewEncoder(w).Encode(CountCodes{Sent: sent, Failed: failed})
+	if err != nil {
+		log.Println("Предупреждение: Ошибка кодирования JSON-структуры -", err)
+	}
 }
 
 // Send принимает JSON-структуру с текстом сообщения и перенаправляет его посредством push-сообщения адресату
@@ -87,21 +98,33 @@ func Send(w http.ResponseWriter, r *http.Request) {
 	DB.QueryRow("SELECT count(*) FROM messages").Scan(&counter)
 
 	var message = Message{ID: 1000 + counter, Token: *Token, User: *User, Text: "", Status: 0, Sent: time.Now()}
+	log.Println("Получен запрос Send:", message.ID)
 
-	_ = json.NewDecoder(r.Body).Decode(&message)
+	err := json.NewDecoder(r.Body).Decode(&message)
+	if err != nil {
+		log.Println("Предупреждение: Декодирование JSON-структуры не выполнено -", err)
+		return
+	}
 
 	m := pushover.NewMessage(message.Token, message.User)
-	resp, _ := m.Push(message.Text)
+	resp, err := m.Push(message.Text)
+	if err != nil {
+		log.Println("Предупреждение: Отправка push-сообщения не выполнена -", err)
+		return
+	}
 
 	message.Status = resp.Status
 
-	_, err := DB.Exec("insert into messages (id, token, userr, textm, status, sent) values ($1, $2, $3, $4, $5, $6)",
+	_, err = DB.Exec("insert into messages (id, token, userr, textm, status, sent) values ($1, $2, $3, $4, $5, $6)",
 		message.ID, message.Token, message.User, message.Text, message.Status, message.Sent.Format(time.UnixDate))
 	if err != nil {
-		panic(err)
+		log.Println("Предупреждение: Отправка push-сообщения не выполнена -", err)
+		return
 	}
 
-	json.NewEncoder(w).Encode(message)
+	err = json.NewEncoder(w).Encode(message)
+	if err != nil {
+		log.Println("Предупреждение: Ошибка кодирования JSON-структуры -", err)
+	}
 
-	//fmt.Println("Получено сообщение:", message)
 }

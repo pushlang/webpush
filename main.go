@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 
@@ -14,23 +15,61 @@ import (
 	_ "github.com/lib/pq"
 )
 
+func init() {
+	log.Println("Запуск сервиса Webpush (" + webServer + ")...")
+}
+
+var webServer = ":8000" //http://127.0.0.1:8000/getcount/2020-10-24T18:50:23.541Z
+var tokenDef = "areaynwu2roqijy8na5hs14gmwytp5"
+var userDef = ""
+
 func main() {
-	pushmess.Token = flag.String("token", "areaynwu2roqijy8na5hs14gmwytp5", "Application token")
-	pushmess.User = flag.String("user", "ucryge6j8mr9jnyhkef5jkab71y7sm", "User key")
+	pushmess.Token = flag.String("token", tokenDef, "Application token")
+	pushmess.User = flag.String("user", userDef, "User key")
+	//ucryge6j8mr9jnyhkef5jkab71y7sm chrome win, firefox ubu
 
 	flag.Parse()
 
-	connStr := "user=postgres password=12481 dbname=pushover sslmode=disable"
+	if *pushmess.Token == tokenDef {
+		log.Println("Предупреждение: Используется токен приложения по умолчанию")
+	}
 
+	if *pushmess.User == "" || *pushmess.Token == "" {
+		log.Fatal("Ошибка: Токен приложения или ключ пользователя не заданы")
+	}
+
+	//export DB_DSN="user=postgres password=password dbname=pushover sslmode=disable"
+	connStr := os.Getenv("DB_DSN")
+	if connStr == "" {
+		log.Fatal("Ошибка: Переменная среды DB_DSN не задана")
+	}
+
+	//CREATE DATABASE pushover;
+	//\c pushover;
+	//CREATE TABLE messages(id integer PRIMARY KEY, token text, userr text, textm text, status integer, sent text);
 	var err error
 	pushmess.DB, err = sql.Open("postgres", connStr)
 	if err != nil {
-		panic(err)
+		log.Fatal("Ошибка: Подключение к БД невозможно, код ошибки - ", err)
 	}
-	defer pushmess.DB.Close()
+
+	log.Println("Подключение к БД...")
+
+	defer func() {
+		pushmess.DB.Close()
+		if err != nil {
+			log.Fatal("Ошибка: Невозможно закрыть БД, код ошибки - ", err)
+		}
+	}()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/getcount/{from}", pushmess.GetCount).Methods("GET")
 	r.HandleFunc("/send", pushmess.Send).Methods("POST")
-	log.Fatal(http.ListenAndServe(":8000", r))
+
+	log.Println("Запуск web-сервера...")
+	err = http.ListenAndServe(webServer, r)
+	if err != nil {
+		log.Fatal("Ошибка: Запуск web-сервера не выполнен, код ошибки - ", err)
+	}
+
 }
