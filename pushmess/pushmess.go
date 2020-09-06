@@ -43,11 +43,7 @@ func GetCount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 
-	//fmt.Println("from1:", params["from"])
-
 	from, _ := time.Parse(time.RFC3339, params["from"])
-
-	//fmt.Println("from2:", from)
 
 	rows, err := DB.Query("SELECT * FROM messages")
 	if err != nil {
@@ -62,7 +58,7 @@ func GetCount(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&message.ID, &message.Token, &message.User, &message.Text, &message.Status, &t)
 		message.Sent, _ = time.Parse(time.UnixDate, t)
 
-		fmt.Println("from3:", message.Sent)
+		fmt.Println("Получен запрос:", message.Sent)
 
 		if err != nil {
 			fmt.Println(err)
@@ -107,5 +103,5 @@ func Send(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(message)
 
-	fmt.Println("Получено сообщение:", message)
+	//fmt.Println("Получено сообщение:", message)
 }
