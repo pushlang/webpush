@@ -39,6 +39,7 @@ func main() {
 	}
 
 	//export DB_DSN="user=postgres password=password dbname=pushover sslmode=disable"
+	//set DB_DSN="user=postgres password=password dbname=pushover sslmode=disable"
 	connStr := os.Getenv("DB_DSN")
 	if connStr == "" {
 		log.Fatal("Ошибка: Переменная среды DB_DSN не задана")
@@ -48,6 +49,7 @@ func main() {
 	//\c pushover;
 	//CREATE TABLE messages(id integer PRIMARY KEY, token text, userr text, textm text, status integer, sent text);
 	var err error
+	connStr = "user=postgres password=12481 dbname=pushover sslmode=disable"
 	pushmess.DB, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Ошибка: Подключение к БД невозможно, код ошибки - ", err)
@@ -64,7 +66,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/getcount/{from}", pushmess.GetCount).Methods("GET")
-	r.HandleFunc("/send", pushmess.Send).Methods("POST")
+	r.HandleFunc("/send", pushmess.Send).Methods("POST", "OPTIONS")
 
 	log.Println("Запуск web-сервера...")
 	err = http.ListenAndServe(webServer, r)

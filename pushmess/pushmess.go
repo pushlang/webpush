@@ -42,6 +42,8 @@ var DB *sql.DB
 // http://127.0.0.1:8000/getcount/2020-10-24T18:50:23.541Z
 func GetCount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	enableCors(&w)
+	
 	params := mux.Vars(r)
 
 	from, err := time.Parse(time.RFC3339, params["from"])
@@ -92,6 +94,7 @@ func GetCount(w http.ResponseWriter, r *http.Request) {
 // Send принимает JSON-структуру с текстом сообщения и перенаправляет его посредством push-сообщения адресату
 func Send(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	//enableCors(&w)
 
 	var counter int
 
@@ -110,7 +113,7 @@ func Send(w http.ResponseWriter, r *http.Request) {
 	resp, err := m.Push(message.Text)
 	if err != nil {
 		log.Println("Предупреждение: Отправка push-сообщения не выполнена -", err)
-		return
+		//return
 	}
 
 	message.Status = resp.Status
@@ -127,4 +130,8 @@ func Send(w http.ResponseWriter, r *http.Request) {
 		log.Println("Предупреждение: Ошибка кодирования JSON-структуры -", err)
 	}
 
+}
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
