@@ -21,6 +21,7 @@ var userDef = ""
 
 func run() {
 	log.Println("Запуск сервиса Webpush (" + webServer + ")...")
+	
 	pushmess.Token = flag.String("token", tokenDef, "Application token")
 	pushmess.User = flag.String("user", userDef, "User key")
 	//ucryge6j8mr9jnyhkef5jkab71y7sm chrome win, firefox ubu
