@@ -1,4 +1,4 @@
-package pushmess
+package webpush
 
 import (
 	"encoding/json"

@@ -10,8 +10,6 @@ import (
 
 	"database/sql"
 
-	"webpush/pushmess"
-
 	_ "github.com/lib/pq"
 )
 
@@ -22,17 +20,17 @@ var userDef = ""
 func run() {
 	log.Println("Запуск сервиса Webpush (" + webServer + ")...")
 	
-	pushmess.Token = flag.String("token", tokenDef, "Application token")
-	pushmess.User = flag.String("user", userDef, "User key")
+	Token = flag.String("token", tokenDef, "Application token")
+	User = flag.String("user", userDef, "User key")
 	//ucryge6j8mr9jnyhkef5jkab71y7sm chrome win, firefox ubu
 
 	flag.Parse()
 
-	if *pushmess.Token == tokenDef {
+	if *Token == tokenDef {
 		log.Println("Предупреждение: Используется токен приложения по умолчанию")
 	}
 
-	if *pushmess.User == "" || *pushmess.Token == "" {
+	if *User == "" || *Token == "" {
 		log.Fatal("Ошибка: Токен приложения или ключ пользователя не заданы")
 	}
 
@@ -48,7 +46,7 @@ func run() {
 	//CREATE TABLE messages(id integer PRIMARY KEY, token text, userr text, textm text, status integer, sent text);
 	var err error
 	connStr = "user=postgres password=12481 dbname=pushover sslmode=disable"
-	pushmess.DB, err = sql.Open("postgres", connStr)
+	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Ошибка: Подключение к БД невозможно, код ошибки - ", err)
 	}
@@ -56,15 +54,15 @@ func run() {
 	log.Println("Подключение к БД...")
 
 	defer func() {
-		pushmess.DB.Close()
+		DB.Close()
 		if err != nil {
 			log.Fatal("Ошибка: Невозможно закрыть БД, код ошибки - ", err)
 		}
 	}()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/getcount/{from}", pushmess.GetCount).Methods("GET")
-	r.HandleFunc("/send", pushmess.Send).Methods("POST", "OPTIONS")
+	r.HandleFunc("/getcount/{from}", GetCount).Methods("GET")
+	r.HandleFunc("/send", Send).Methods("POST", "OPTIONS")
 
 	log.Println("Запуск web-сервера...")
 	err = http.ListenAndServe(webServer, r)
