@@ -70,5 +70,6 @@ func Run() int {
 	if err != nil {
 		log.Fatal("Ошибка: Запуск web-сервера не выполнен, код ошибки - ", err)
 	}
-
+	
+	return 0
 }
