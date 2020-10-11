@@ -26,6 +26,7 @@ func Run() int {
 
 	flag.Parse()
 
+
 	if *Token == tokenDef {
 		log.Println("Предупреждение: Используется токен приложения по умолчанию")
 	}
