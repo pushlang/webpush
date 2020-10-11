@@ -32,7 +32,7 @@ func Run() int {
 	}
 
 	if *User == "" || *Token == "" {
-		log.Fatal("Ошибка: Токен приложения или ключ пользователя не заданы")
+		log.Printf("Ошибка: Токен приложения или ключ пользователя не заданы")
 		return -1
 	}
 
@@ -40,7 +40,8 @@ func Run() int {
 	//set DB_DSN="user=postgres password=password dbname=pushover sslmode=disable"
 	connStr := os.Getenv("DB_DSN")
 	if connStr == "" {
-		log.Fatal("Ошибка: Переменная среды DB_DSN не задана")
+		log.Printf("Ошибка: Переменная среды DB_DSN не задана")
+		return -1
 	}
 
 	//CREATE DATABASE pushover;
@@ -50,7 +51,8 @@ func Run() int {
 	connStr = "user=postgres password=12481 dbname=pushover sslmode=disable"
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal("Ошибка: Подключение к БД невозможно, код ошибки - ", err)
+		log.Printf("Ошибка: Подключение к БД невозможно, код ошибки - ", err)
+		return -1
 	}
 
 	log.Println("Подключение к БД...")
@@ -58,7 +60,8 @@ func Run() int {
 	defer func() {
 		DB.Close()
 		if err != nil {
-			log.Fatal("Ошибка: Невозможно закрыть БД, код ошибки - ", err)
+			log.Printf("Ошибка: Невозможно закрыть БД, код ошибки - ", err)
+			return -1
 		}
 	}()
 
@@ -69,7 +72,8 @@ func Run() int {
 	log.Println("Запуск web-сервера...")
 	err = http.ListenAndServe(webServer, r)
 	if err != nil {
-		log.Fatal("Ошибка: Запуск web-сервера не выполнен, код ошибки - ", err)
+		log.Printf("Ошибка: Запуск web-сервера не выполнен, код ошибки - ", err)
+		return -1
 	}
 	
 	return 0
