@@ -62,7 +62,7 @@ func Run() int {
 		DB.Close()
 		if err != nil {
 			log.Printf("Ошибка: Невозможно закрыть БД, код ошибки - %s", err)
-			return -1
+			return
 		}
 	}()
 
