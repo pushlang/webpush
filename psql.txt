@@ -1,0 +1,12 @@
+CREATE DATABASE pushover;
+
+\c pushover;
+
+CREATE TABLE messages(
+id integer PRIMARY KEY,
+token text,
+userr text,
+textm text,
+status integer,
+sent text
+);
