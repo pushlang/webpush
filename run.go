@@ -15,9 +15,9 @@ import (
 
 var webServer = ":8000" //http://127.0.0.1:8000/getcount/2020-10-24T18:50:23.541Z
 var tokenDef = "areaynwu2roqijy8na5hs14gmwytp5"
-var userDef = ""
+var userDef = "ucryge6j8mr9jnyhkef5jkab71y7sm"
 
-func Run() {
+func Run() int {
 	log.Println("Запуск сервиса Webpush (" + webServer + ")...")
 	
 	Token = flag.String("token", tokenDef, "Application token")
@@ -32,6 +32,7 @@ func Run() {
 
 	if *User == "" || *Token == "" {
 		log.Fatal("Ошибка: Токен приложения или ключ пользователя не заданы")
+		return -1
 	}
 
 	//export DB_DSN="user=postgres password=password dbname=pushover sslmode=disable"
