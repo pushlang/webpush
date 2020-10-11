@@ -10,7 +10,7 @@ RUN go get -d -v ./...
 
 RUN go install -v ./...
 
-ENV DB_DSN "user=postgres password=12481 dbname=pushover sslmode=disable"
+ENV DB_DSN "user=postgres password=12345 dbname=pushover sslmode=disable"
 
 CMD ["~/go/bin/webpush -user=ucryge6j8mr9jnyhkef5jkab71y7sm"]
 
