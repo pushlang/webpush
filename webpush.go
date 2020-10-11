@@ -1,4 +1,4 @@
-package webpush
+package main
 
 import (
 	"flag"
@@ -15,12 +15,15 @@ import (
 	_ "github.com/lib/pq"
 )
 
+func init() {
+	log.Println("Запуск сервиса Webpush (" + webServer + ")...")
+}
+
 var webServer = ":8000" //http://127.0.0.1:8000/getcount/2020-10-24T18:50:23.541Z
 var tokenDef = "areaynwu2roqijy8na5hs14gmwytp5"
 var userDef = ""
 
-func run() {
-	log.Println("Запуск сервиса Webpush (" + webServer + ")...")
+func main() {
 	pushmess.Token = flag.String("token", tokenDef, "Application token")
 	pushmess.User = flag.String("user", userDef, "User key")
 	//ucryge6j8mr9jnyhkef5jkab71y7sm chrome win, firefox ubu
