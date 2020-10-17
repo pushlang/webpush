@@ -61,7 +61,7 @@ func Run() int {
 	log.Println("Подключение к БД...")
 
 	defer func() {
-		DB.Close()
+		pushmess.DB.Close()
 		if err != nil {
 			log.Printf("Ошибка: Невозможно закрыть БД, код ошибки - %s", err)
 			return
@@ -69,8 +69,8 @@ func Run() int {
 	}()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/getcount/{from}", GetCount).Methods("GET")
-	r.HandleFunc("/send", Send).Methods("POST", "OPTIONS")
+	r.HandleFunc("/getcount/{from}", pushmess.GetCount).Methods("GET")
+	r.HandleFunc("/send", pushmess.Send).Methods("POST", "OPTIONS")
 
 	log.Println("Запуск web-сервера...")
 	err = http.ListenAndServe(webServer, r)
