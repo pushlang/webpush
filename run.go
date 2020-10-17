@@ -11,6 +11,8 @@ import (
 	"database/sql"
 
 	_ "github.com/lib/pq"
+	
+	"github.com/pushlang/webpush/pushmess"
 )
 
 var webServer = ":8000" //http://127.0.0.1:8000/getcount/2020-10-24T18:50:23.541Z
@@ -21,18 +23,18 @@ var userDef = "ucryge6j8mr9jnyhkef5jkab71y7sm"
 func Run() int {
 	log.Println("Запуск сервиса Webpush (" + webServer + ")...")
 	
-	Token = flag.String("token", tokenDef, "Application token")
-	User = flag.String("user", userDef, "User key")
+	pushmess.Token = flag.String("token", tokenDef, "Application token")
+	pushmess.User = flag.String("user", userDef, "User key")
 	//ucryge6j8mr9jnyhkef5jkab71y7sm chrome win, firefox ubu
 
 	flag.Parse()
 
 
-	if *Token == tokenDef {
+	if *pushmess.Token == tokenDef {
 		log.Println("Предупреждение: Используется токен приложения по умолчанию")
 	}
 
-	if *User == "" || *Token == "" {
+	if *pushmess.User == "" || *pushmess.Token == "" {
 		log.Printf("Ошибка: Токен приложения или ключ пользователя не заданы")
 		return -1
 	}
@@ -50,7 +52,7 @@ func Run() int {
 	//CREATE TABLE messages(id integer PRIMARY KEY, token text, userr text, textm text, status integer, sent text);
 	var err error
 	connStr = "user=postgres password=12481 dbname=pushover sslmode=disable"
-	DB, err = sql.Open("postgres", connStr)
+	pushmess.DB, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Printf("Ошибка: Подключение к БД невозможно, код ошибки - %s", err)
 		return -1
